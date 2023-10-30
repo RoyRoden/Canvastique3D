@@ -155,7 +155,7 @@ namespace Canvastique3D
             {
                 // Set the Authorization header to "Bearer {apiKey}".
                 www.SetRequestHeader("Authorization", "Bearer " + _APIKey);
-                www.timeout = 15;
+                www.timeout = 20;
                 yield return www.SendWebRequest();
 
                 // Log an error message if the request failed.
