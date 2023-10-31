@@ -15,7 +15,7 @@ namespace Canvastique3D
         private UdpClient udpClient;
 
         private const int bufferSize = 65507;
-        private const int HEADER_SIZE = 8; // 4 bytes for total packets + 4 bytes for current packet number
+        private const int HEADER_SIZE = 8;
         private int packetSize;
 
         private Texture2D reusableTexture;
@@ -26,8 +26,7 @@ namespace Canvastique3D
             clientEndPoint = new IPEndPoint(IPAddress.Parse(clientIP), port);
             packetSize = bufferSize - HEADER_SIZE;
 
-            // Create a reusable texture
-            reusableTexture = new Texture2D(monitorCamera.targetTexture.width, monitorCamera.targetTexture.height, TextureFormat.RGB24, false);
+            reusableTexture = new Texture2D(512, 512, TextureFormat.RGB24, false);
 
             Debug.Log($"Server started and ready to send frames to {clientIP}:{port}.");
         }

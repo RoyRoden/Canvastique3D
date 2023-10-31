@@ -1125,7 +1125,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   monitorCamera: {fileID: 1236759012}
-  clientIP: 192.168.0.18
+  clientIP: 192.168.0.62
   port: 8080
 --- !u!1 &860381604
 GameObject:
