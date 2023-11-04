@@ -8,11 +8,10 @@ namespace Canvastique3D
     public class StreamingServer : MonoBehaviour
     {
         [SerializeField] private Camera monitorCamera;
-        [SerializeField] private string clientIP = "127.0.0.1";
-        [SerializeField] private int port = 8080;
+        [SerializeField] private int listenPort = 8080; // This is the port the server will listen on
 
-        private IPEndPoint clientEndPoint;
-        private UdpClient udpClient;
+        private UdpClient udpListener;
+        private IPEndPoint clientEndPoint; // This will be set when we receive a message
 
         private const int bufferSize = 65507;
         private const int HEADER_SIZE = 8;
@@ -22,23 +21,41 @@ namespace Canvastique3D
 
         private void Start()
         {
-            udpClient = new UdpClient();
-            clientEndPoint = new IPEndPoint(IPAddress.Parse(clientIP), port);
+            udpListener = new UdpClient(listenPort);
             packetSize = bufferSize - HEADER_SIZE;
-
             reusableTexture = new Texture2D(512, 512, TextureFormat.RGB24, false);
-
-            Debug.Log($"Server started and ready to send frames to {clientIP}:{port}.");
+            Debug.Log($"Server listening on port {listenPort}.");
         }
 
         void Update()
         {
-            SendCompressedFrame();
+            if (clientEndPoint != null)
+            {
+                // We have a client connected, send the frame
+                SendCompressedFrame();
+            }
+            else if (udpListener.Available > 0)
+            {
+                // We have data on the UDP client, this means we might have a new client
+                ReceiveInitialClientMessage();
+            }
+        }
+
+        private void ReceiveInitialClientMessage()
+        {
+            // Receive the first message from any client
+            IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
+            byte[] data = udpListener.Receive(ref anyIP);
+            if (data.Length > 0)
+            {
+                // Set the client endpoint to the address and port from which the message was received
+                clientEndPoint = anyIP;
+                Debug.Log($"Received initial message from {clientEndPoint}, will send frames to this endpoint.");
+            }
         }
 
         private void SendCompressedFrame()
         {
-            // Use the reusable texture
             RenderTexture currentRT = RenderTexture.active;
             RenderTexture.active = monitorCamera.targetTexture;
             monitorCamera.Render();
@@ -60,23 +77,29 @@ namespace Canvastique3D
                 BitConverter.GetBytes(i).CopyTo(packetData, 4);
                 Array.Copy(jpegData, offset, packetData, HEADER_SIZE, size);
 
-                udpClient.Send(packetData, packetData.Length, clientEndPoint);
+                udpListener.Send(packetData, packetData.Length, clientEndPoint);
             }
-
-            RenderTexture.active = currentRT;
         }
 
         private void OnDestroy()
         {
+            // Clean up
             if (reusableTexture != null)
             {
                 Destroy(reusableTexture);
+            }
+            if (udpListener != null)
+            {
+                udpListener.Close();
             }
         }
 
         private void OnApplicationQuit()
         {
-            udpClient.Close();
+            if (udpListener != null)
+            {
+                udpListener.Close();
+            }
         }
     }
 }
