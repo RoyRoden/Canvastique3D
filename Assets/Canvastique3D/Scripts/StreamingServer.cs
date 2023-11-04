@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Net.Sockets;
 using System.Net;
 using System;
+using System.Text;
 
 namespace Canvastique3D
 {
@@ -29,6 +30,8 @@ namespace Canvastique3D
 
         void Update()
         {
+            CheckForDiscoveryRequests();
+
             if (clientEndPoint != null)
             {
                 // We have a client connected, send the frame
@@ -41,17 +44,53 @@ namespace Canvastique3D
             }
         }
 
+        private void CheckForDiscoveryRequests()
+        {
+            if (udpListener.Available > 0)
+            {
+                IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
+                byte[] data = udpListener.Receive(ref anyIP);
+                string message = System.Text.Encoding.ASCII.GetString(data);
+
+                if (message == "DISCOVER_SERVER_REQUEST")
+                {
+                    byte[] response = System.Text.Encoding.ASCII.GetBytes("DISCOVER_SERVER_RESPONSE");
+                    udpListener.Send(response, response.Length, anyIP);
+                    Debug.Log("Responded to discovery request.");
+                }
+            }
+        }
+
         private void ReceiveInitialClientMessage()
         {
             // Receive the first message from any client
             IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
             byte[] data = udpListener.Receive(ref anyIP);
+
             if (data.Length > 0)
             {
-                // Set the client endpoint to the address and port from which the message was received
-                clientEndPoint = anyIP;
-                Debug.Log($"Received initial message from {clientEndPoint}, will send frames to this endpoint.");
+                string receivedText = Encoding.UTF8.GetString(data); // Ensure the encoding matches the client.
+                Debug.Log($"Received message: {receivedText} from {anyIP}");
+
+                // Check if the message is the expected "HELLO" message
+                if (receivedText == "HELLO")
+                {
+                    clientEndPoint = anyIP; // Store the client's endpoint
+                    SendHelloAckMessage(anyIP);
+                }
+                else
+                {
+                    Debug.LogWarning("Received unexpected message: " + receivedText);
+                }
             }
+        }
+
+        private void SendHelloAckMessage(IPEndPoint clientIP)
+        {
+            string ackMessage = "HELLO_ACK";
+            byte[] ackData = Encoding.UTF8.GetBytes(ackMessage);
+            udpListener.Send(ackData, ackData.Length, clientIP);
+            Debug.Log("Sent HELLO_ACK message to client.");
         }
 
         private void SendCompressedFrame()
