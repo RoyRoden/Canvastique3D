@@ -52,9 +52,13 @@ namespace Canvastique3D
         private TextField keyTextField;
         private Toggle keyRememberToggle;
 
+        private Button connectButton;
+        private Button streamButton;
+        private Button transferButton;
+        private Label streamingStatus;
+
         private const string THRESHOLD_KEY = "ThresholdValue";
         private const string API_KEY = "APIKeyValue";
-
 
         private void Awake()
         {
@@ -159,6 +163,15 @@ namespace Canvastique3D
             keyTextField = root.Q<TextField>("KeyTextField");
             keyRememberToggle = root.Q<Toggle>("KeyRememberToggle");
 
+            streamingStatus = root.Q<Label>("StreamingStatus");
+            connectButton = root.Q<Button>("Connect");
+            connectButton.clicked += OnConnectButtonClicked;
+            EventManager.instance.OnConnected += HandleConnected;
+            streamButton = root.Q<Button>("Stream");
+            streamButton.SetEnabled(false);
+            transferButton = root.Q<Button>("Transfer");
+            transferButton.SetEnabled(false);
+
             LoadThresholdValue();
         }
 
@@ -190,6 +203,26 @@ namespace Canvastique3D
             variationButton.SetEnabled(false);
             LoadAPIKey();
             StartCoroutine(KeyConfirmation());
+        }
+
+        private void OnConnectButtonClicked()
+        {
+            EventManager.instance.TriggerConnect();
+            connectButton.clicked -= OnConnectButtonClicked;
+            connectButton.clicked += OnDisconnectButtonClicked;
+            connectButton.text = "Disconnect";
+            streamingStatus.style.color = Color.yellow;
+            streamingStatus.text = "Connecting...";
+        }
+
+        private void OnDisconnectButtonClicked()
+        {
+            EventManager.instance.TriggerDisconnect();
+            connectButton.clicked += OnConnectButtonClicked;
+            connectButton.clicked -= OnDisconnectButtonClicked;
+            connectButton.text = "Connect";
+            streamingStatus.style.color = Color.red;
+            streamingStatus.text = "Disconnected";
         }
 
         IEnumerator KeyConfirmation()
@@ -453,6 +486,14 @@ namespace Canvastique3D
             lastCapture.AddToClassList("runtimeui-gallery-capture__selected");
             variationButton.SetEnabled(true);
             captureButton.SetEnabled(false);
+        }
+
+        private void HandleConnected(string clientIP)
+        {
+            streamingStatus.style.color = Color.green;
+            streamingStatus.text = $"Connected to {clientIP}";
+            streamButton.SetEnabled(true);
+            transferButton.SetEnabled(true);
         }
         #endregion
 

@@ -3,6 +3,8 @@ using System.Net.Sockets;
 using System.Net;
 using System;
 using System.Text;
+using System.Collections;
+using UnityEditor.PackageManager;
 
 namespace Canvastique3D
 {
@@ -20,77 +22,57 @@ namespace Canvastique3D
 
         private Texture2D reusableTexture;
 
-        private void Start()
+        private bool isStreaming = false;
+
+        private void Awake()
         {
             udpListener = new UdpClient(listenPort);
             packetSize = bufferSize - HEADER_SIZE;
             reusableTexture = new Texture2D(512, 512, TextureFormat.RGB24, false);
-            Debug.Log($"Server listening on port {listenPort}.");
         }
 
         void Update()
         {
-            CheckForDiscoveryRequests();
-
-            if (clientEndPoint != null)
+            if (isStreaming && clientEndPoint != null)
             {
-                // We have a client connected, send the frame
                 SendCompressedFrame();
             }
-            else if (udpListener.Available > 0)
-            {
-                // We have data on the UDP client, this means we might have a new client
-                ReceiveInitialClientMessage();
-            }
         }
 
-        private void CheckForDiscoveryRequests()
+        private IEnumerator FindClientIPCoroutine()
         {
-            if (udpListener.Available > 0)
+            Debug.Log($"Server listening on port {listenPort}.");
+            while (true)
             {
-                IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
-                byte[] data = udpListener.Receive(ref anyIP);
-                string message = System.Text.Encoding.ASCII.GetString(data);
-
-                if (message == "DISCOVER_SERVER_REQUEST")
+                if (udpListener.Available > 0)
                 {
-                    byte[] response = System.Text.Encoding.ASCII.GetBytes("DISCOVER_SERVER_RESPONSE");
-                    udpListener.Send(response, response.Length, anyIP);
-                    Debug.Log("Responded to discovery request.");
+                    IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
+                    byte[] data = udpListener.Receive(ref anyIP);
+                    string message = System.Text.Encoding.ASCII.GetString(data);
+
+                    if (message == "DISCOVER_SERVER_REQUEST")
+                    {
+                        byte[] response = System.Text.Encoding.ASCII.GetBytes("DISCOVER_SERVER_RESPONSE");
+                        udpListener.Send(response, response.Length, anyIP);
+                        Debug.Log("Responded to discovery request.");
+                    }
+                    else if (message == "HELLO") // Only when a "HELLO" message is received
+                    {
+                        clientEndPoint = anyIP; // Store the client's endpoint
+                        EventManager.instance.TriggerConnected(clientEndPoint.ToString());
+                        // Send HELLO_ACK message
+                        string ackMessage = "HELLO_ACK";
+                        byte[] ackData = Encoding.UTF8.GetBytes(ackMessage);
+                        udpListener.Send(ackData, ackData.Length, anyIP);
+                        Debug.Log("Sent HELLO_ACK message to client.");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("Received unexpected message: " + message);
+                    }
                 }
+                yield return new WaitForSeconds(1.0f);
             }
-        }
-
-        private void ReceiveInitialClientMessage()
-        {
-            // Receive the first message from any client
-            IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
-            byte[] data = udpListener.Receive(ref anyIP);
-
-            if (data.Length > 0)
-            {
-                string receivedText = Encoding.UTF8.GetString(data); // Ensure the encoding matches the client.
-                Debug.Log($"Received message: {receivedText} from {anyIP}");
-
-                // Check if the message is the expected "HELLO" message
-                if (receivedText == "HELLO")
-                {
-                    clientEndPoint = anyIP; // Store the client's endpoint
-                    SendHelloAckMessage(anyIP);
-                }
-                else
-                {
-                    Debug.LogWarning("Received unexpected message: " + receivedText);
-                }
-            }
-        }
-
-        private void SendHelloAckMessage(IPEndPoint clientIP)
-        {
-            string ackMessage = "HELLO_ACK";
-            byte[] ackData = Encoding.UTF8.GetBytes(ackMessage);
-            udpListener.Send(ackData, ackData.Length, clientIP);
-            Debug.Log("Sent HELLO_ACK message to client.");
         }
 
         private void SendCompressedFrame()
@@ -118,6 +100,33 @@ namespace Canvastique3D
 
                 udpListener.Send(packetData, packetData.Length, clientEndPoint);
             }
+        }
+
+        public void StartStreaming()
+        {
+            isStreaming = true;
+        }
+
+        public void StopStreaming()
+        {
+            isStreaming = false;
+        }
+
+        public void ConnectClient()
+        {
+            StartCoroutine(FindClientIPCoroutine());
+        }
+
+        public void DisconnectClient()
+        {
+            StopCoroutine(FindClientIPCoroutine());
+            clientEndPoint = null;
+        }
+
+        public void Send3DFile(byte[] fileData)
+        {
+            // Logic to send 3D files to the connected client
+            // You can define a protocol to handle file transfer
         }
 
         private void OnDestroy()
