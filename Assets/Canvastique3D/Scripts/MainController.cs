@@ -49,6 +49,8 @@ namespace Canvastique3D
             EventManager.instance.OnAssignMaterial += AssignMaterial;
             EventManager.instance.OnConnect += ConnectClient;
             EventManager.instance.OnDisconnect += DisconnectClient;
+            EventManager.instance.OnStream += StartStreaming;
+            EventManager.instance.OnStopStream += StopStreaming;
         }
 
         // Start is called before the first frame update
@@ -210,6 +212,16 @@ namespace Canvastique3D
         private void DisconnectClient()
         {
             streamingServer.DisconnectClient();
+        }
+
+        private void StartStreaming()
+        {
+            streamingServer.StartStreaming();
+        }
+
+        private void StopStreaming()
+        {
+            streamingServer.StopStreaming();
         }
     }
 }

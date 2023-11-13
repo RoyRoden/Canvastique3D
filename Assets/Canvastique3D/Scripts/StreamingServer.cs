@@ -4,7 +4,6 @@ using System.Net;
 using System;
 using System.Text;
 using System.Collections;
-using UnityEditor.PackageManager;
 
 namespace Canvastique3D
 {
@@ -119,6 +118,7 @@ namespace Canvastique3D
 
         public void DisconnectClient()
         {
+            isStreaming = false;
             StopCoroutine(FindClientIPCoroutine());
             clientEndPoint = null;
         }

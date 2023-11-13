@@ -167,8 +167,11 @@ namespace Canvastique3D
             connectButton = root.Q<Button>("Connect");
             connectButton.clicked += OnConnectButtonClicked;
             EventManager.instance.OnConnected += HandleConnected;
+
             streamButton = root.Q<Button>("Stream");
             streamButton.SetEnabled(false);
+            streamButton.clicked += OnStreamButtonClicked;
+            
             transferButton = root.Q<Button>("Transfer");
             transferButton.SetEnabled(false);
 
@@ -223,6 +226,28 @@ namespace Canvastique3D
             connectButton.text = "Connect";
             streamingStatus.style.color = Color.red;
             streamingStatus.text = "Disconnected";
+            streamButton.SetEnabled(false);
+            transferButton.SetEnabled(false);
+        }
+
+        private void OnStreamButtonClicked()
+        {
+            EventManager.instance.TriggerStream();
+            streamButton.clicked += OnStopStreamClicked;
+            streamButton.clicked -= OnStreamButtonClicked;
+            streamButton.text = "Stop";
+            streamingStatus.style.color = Color.green;
+            streamingStatus.text = "Streaming";
+        }
+
+        private void OnStopStreamClicked()
+        {
+            EventManager.instance.TriggerStopStream();
+            streamButton.clicked -= OnStopStreamClicked;
+            streamButton.clicked += OnStreamButtonClicked;
+            streamButton.text = "Stream";
+            streamingStatus.style.color = Color.green;
+            streamingStatus.text = "Connected";
         }
 
         IEnumerator KeyConfirmation()
