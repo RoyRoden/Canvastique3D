@@ -51,19 +51,13 @@ namespace Canvastique3D
 
                     if (message == "DISCOVER_SERVER_REQUEST")
                     {
-                        byte[] response = System.Text.Encoding.ASCII.GetBytes("DISCOVER_SERVER_RESPONSE");
+                        // Respond to discovery request with the server's IP address
+                        string serverIPAddress = GetLocalIPAddress(); // Get the server's local IP address
+                        byte[] response = System.Text.Encoding.ASCII.GetBytes("DISCOVER_SERVER_RESPONSE|" + serverIPAddress);
                         udpListener.Send(response, response.Length, anyIP);
-                        Debug.Log("Responded to discovery request.");
-                    }
-                    else if (message == "HELLO") // Only when a "HELLO" message is received
-                    {
                         clientEndPoint = anyIP; // Store the client's endpoint
                         EventManager.instance.TriggerConnected(clientEndPoint.ToString());
-                        // Send HELLO_ACK message
-                        string ackMessage = "HELLO_ACK";
-                        byte[] ackData = Encoding.UTF8.GetBytes(ackMessage);
-                        udpListener.Send(ackData, ackData.Length, anyIP);
-                        Debug.Log("Sent HELLO_ACK message to client.");
+                        Debug.Log("Client discovered the server and connected.");
                     }
                     else
                     {
@@ -74,13 +68,42 @@ namespace Canvastique3D
             }
         }
 
+        private string GetLocalIPAddress()
+        {
+            // Get the local IP address of the server
+            string ipAddress = "";
+            foreach (IPAddress localIp in Dns.GetHostAddresses(Dns.GetHostName()))
+            {
+                if (localIp.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    ipAddress = localIp.ToString();
+                    break;
+                }
+            }
+            return ipAddress;
+        }
+
         private void SendCompressedFrame()
         {
             RenderTexture currentRT = RenderTexture.active;
+            
             RenderTexture.active = monitorCamera.targetTexture;
-            monitorCamera.Render();
 
-            reusableTexture.ReadPixels(new Rect(0, 0, monitorCamera.targetTexture.width, monitorCamera.targetTexture.height), 0, 0);
+            // Create a temporary RenderTexture with the desired resolution
+            RenderTexture tempRT = RenderTexture.GetTemporary(512, 512);
+
+            // Render the source texture into the temporary texture with downsampling
+            Graphics.Blit(monitorCamera.targetTexture, tempRT, new Material(Shader.Find("Unlit/Texture")));
+
+            // Read pixels from the temporary texture
+            reusableTexture.ReadPixels(new Rect(0, 0, 512, 512), 0, 0);
+
+            // Restore the previous active RenderTexture
+            RenderTexture.active = currentRT;
+
+            // Release the temporary RenderTexture
+            RenderTexture.ReleaseTemporary(tempRT);
+
             reusableTexture.Apply();
 
             byte[] jpegData = reusableTexture.EncodeToJPG();
@@ -100,6 +123,7 @@ namespace Canvastique3D
                 udpListener.Send(packetData, packetData.Length, clientEndPoint);
             }
         }
+
 
         public void StartStreaming()
         {
