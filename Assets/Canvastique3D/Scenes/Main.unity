@@ -1125,8 +1125,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   monitorCamera: {fileID: 1236759012}
-  clientIP: 192.168.0.62
-  port: 8080
+  listenPort: 8080
 --- !u!1 &860381604
 GameObject:
   m_ObjectHideFlags: 0
@@ -1363,9 +1362,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47dc70ddd9c1e984cb7761cbc01497c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  zoomSensitivity: 0.001
+  zoomSensitivity: 0.002
   minZoomPercent: 0.1
-  maxZoomPercent: 3
+  maxZoomPercent: 1000
 --- !u!114 &982966763
 MonoBehaviour:
   m_ObjectHideFlags: 0
