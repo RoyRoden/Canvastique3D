@@ -10,7 +10,9 @@ namespace Canvastique3D
     public class StreamingServer : MonoBehaviour
     {
         [SerializeField] private Camera monitorCamera;
-        [SerializeField] private int listenPort = 8080; // This is the port the server will listen on
+        [SerializeField] private int listenPort = 12321; // This is the port the server will listen on
+
+        private Material blitMaterial;
 
         private UdpClient udpListener;
         private IPEndPoint clientEndPoint; // This will be set when we receive a message
@@ -28,6 +30,7 @@ namespace Canvastique3D
             udpListener = new UdpClient(listenPort);
             packetSize = bufferSize - HEADER_SIZE;
             reusableTexture = new Texture2D(512, 512, TextureFormat.RGB24, false);
+            blitMaterial = new Material(Shader.Find("Unlit/Texture"));
         }
 
         void Update()
@@ -45,7 +48,7 @@ namespace Canvastique3D
             {
                 if (udpListener.Available > 0)
                 {
-                    IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
+                    IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, listenPort);
                     byte[] data = udpListener.Receive(ref anyIP);
                     string message = System.Text.Encoding.ASCII.GetString(data);
 
@@ -92,6 +95,8 @@ namespace Canvastique3D
             // Create a temporary RenderTexture with the desired resolution
             RenderTexture tempRT = RenderTexture.GetTemporary(512, 512);
 
+            Graphics.Blit(monitorCamera.targetTexture, tempRT, blitMaterial);
+
             // Render the source texture into the temporary texture with downsampling
             Graphics.Blit(monitorCamera.targetTexture, tempRT, new Material(Shader.Find("Unlit/Texture")));
 
@@ -122,6 +127,8 @@ namespace Canvastique3D
 
                 udpListener.Send(packetData, packetData.Length, clientEndPoint);
             }
+
+            RenderTexture.ReleaseTemporary(tempRT);
         }
 
 
@@ -147,12 +154,6 @@ namespace Canvastique3D
             clientEndPoint = null;
         }
 
-        public void Send3DFile(byte[] fileData)
-        {
-            // Logic to send 3D files to the connected client
-            // You can define a protocol to handle file transfer
-        }
-
         private void OnDestroy()
         {
             // Clean up
@@ -163,6 +164,10 @@ namespace Canvastique3D
             if (udpListener != null)
             {
                 udpListener.Close();
+            }
+            if (blitMaterial != null)
+            {
+                Destroy(blitMaterial);
             }
         }
 
