@@ -222,10 +222,10 @@ namespace Canvastique3D
         public event Action<string> OnConnected;
         public event Action OnDisconnect;
         public event Action OnDisconnected;
-        public event Action OnStream;
-        public event Action OnStopStream;
-        public event Action<string> OnTransfer;
-        public event Action OnTransferComplete;
+        public event Action OnStartStreaming;
+        public event Action OnStopStreaming;
+        public event Action OnTeleport;
+        public event Action OnTeleported;
 
         public void TriggerConnect()
         {
@@ -247,24 +247,24 @@ namespace Canvastique3D
             OnDisconnected?.Invoke();
         }
 
-        public void TriggerStream()
+        public void TriggerStartStreaming()
         {
-            OnStream?.Invoke();
+            OnStartStreaming?.Invoke();
         }
 
-        public void TriggerStopStream()
+        public void TriggerStopStreaming()
         {
-            OnStopStream?.Invoke();
+            OnStopStreaming?.Invoke();
         }
 
-        public void TriggerTransfer(string modelName)
+        public void TriggerTeleport()
         {
-            OnTransfer?.Invoke(modelName);
+            OnTeleport?.Invoke();
         }
 
-        public void TriggerTransferCoplete()
+        public void TriggerTeleported()
         {
-            OnTransferComplete?.Invoke();
+            OnTeleported?.Invoke();
         }
         #endregion
     }

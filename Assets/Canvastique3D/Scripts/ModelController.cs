@@ -15,7 +15,10 @@ namespace Canvastique3D
 
         private Material originalMaterial;
 
-        // Load 3D model
+        private string modelFilePath = null;
+
+        public string getModelFilePath() => modelFilePath;
+
         public void LoadModel()
         {
 #if UNITY_EDITOR || UNITY_STANDALONE_WIN
@@ -87,9 +90,12 @@ namespace Canvastique3D
                 {
                     legacyAnimation.Play();
                 }
+
+                modelFilePath = path;
             } 
             else
             {
+                modelFilePath = null;
                 EventManager.instance.TriggerError("Loading glTF failed!");
             }
         }
