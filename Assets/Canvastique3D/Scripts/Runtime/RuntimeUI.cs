@@ -440,7 +440,8 @@ namespace Canvastique3D
         private void HandleModelLoaded(string modelName, List<string> materialNames)
         {
             modelNameLabel.text = modelName;
-            if(materialNames != null)
+            teleportButton.SetEnabled(true);
+            if (materialNames != null)
             {
                 materialDropdown.choices.Clear();
                 materialDropdown.index = -1;
@@ -568,12 +569,11 @@ namespace Canvastique3D
             streamingStatus.style.color = Color.green;
             streamingStatus.text = $"Connected to {clientIP}";
             streamButton.SetEnabled(true);
-            teleportButton.SetEnabled(true);
         }
 
         private void HandleTeleported()
         {
-            teleportButton.SetEnabled(true);
+            
         }
         #endregion
 

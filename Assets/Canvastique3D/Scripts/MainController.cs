@@ -206,6 +206,7 @@ namespace Canvastique3D
         private void AssignMaterial(string materialName)
         {
             modelController.AssignMaterialByName(materialName);
+            streamingServer.SendMaterialName(materialName);
         }
 
         private void Connect()

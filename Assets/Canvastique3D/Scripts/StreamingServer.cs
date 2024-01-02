@@ -11,17 +11,20 @@ namespace Canvastique3D
     {
         [SerializeField] private Camera monitorCamera;
 
-        [SerializeField] private int discoverPort = 12320;
-        [SerializeField] private int messagePort = 12321;
-        [SerializeField] private int streamingPort = 12322;
-        [SerializeField] private int teleportPort = 12323;
+        [SerializeField] private int discoverServerPort = 12320;
+        [SerializeField] private int discoverClientPort = 12324;
+        [SerializeField] private int messagePort = 12325;
+        [SerializeField] private int streamingPort = 12326;
+        [SerializeField] private int teleportPort = 12327;
 
         private UdpClient udpDiscoverListener;
+        private UdpClient udpResponseSender;
         private UdpClient udpMessageListener;
         private UdpClient udpStreamingListener;
         private UdpClient udpTeleportListener;
 
-        private IPEndPoint discoverIPEndPoint = null;
+        private IPEndPoint receiveIPEndPoint = null;
+        private IPEndPoint sendIPEndPoint = null;
         private IPEndPoint messageIPEndPoint = null;
         private IPEndPoint streamingIPEndPoint = null;
         private IPEndPoint teleportIPEndPoint = null;
@@ -37,10 +40,11 @@ namespace Canvastique3D
 
         private void Awake()
         {
-            udpDiscoverListener = new UdpClient(discoverPort);
-            udpMessageListener = new UdpClient(messagePort);
-            udpStreamingListener = new UdpClient(streamingPort);
-            udpTeleportListener = new UdpClient(teleportPort);
+            udpDiscoverListener = new UdpClient(discoverServerPort);
+            udpResponseSender = new UdpClient();
+            udpMessageListener = new UdpClient();
+            udpStreamingListener = new UdpClient();
+            udpTeleportListener = new UdpClient();
 
             packetSize = bufferSize - HEADER_SIZE;
 
@@ -60,34 +64,41 @@ namespace Canvastique3D
         public void Disconnect()
         {
             StopCoroutine(DiscoverLocalIPCoroutine());
-            discoverIPEndPoint = null;
             messageIPEndPoint = null;
             streamingIPEndPoint = null;
             teleportIPEndPoint = null;
+
             isIPDiscovered = false;
         }
 
         private IEnumerator DiscoverLocalIPCoroutine()
         {
-            Debug.Log($"Server listening on port {discoverPort}.");
+            Debug.Log($"Server listening on port {discoverServerPort}.");
+
             while (isIPDiscovered == false)
             {
                 if (udpDiscoverListener.Available > 0)
                 {
-                    discoverIPEndPoint = new IPEndPoint(IPAddress.Any, discoverPort);
-                    byte[] data = udpDiscoverListener.Receive(ref discoverIPEndPoint);
+                    receiveIPEndPoint = new IPEndPoint(IPAddress.Any, discoverServerPort);
+                    byte[] data = udpDiscoverListener.Receive(ref receiveIPEndPoint);
                     string message = System.Text.Encoding.ASCII.GetString(data);
+                    Debug.Log($"Received message from: {receiveIPEndPoint.Address}");
 
                     if (message == "DISCOVER_SERVER_REQUEST")
                     {
                         string serverIPAddress = GetLocalIPAddress();
                         byte[] response = System.Text.Encoding.ASCII.GetBytes("DISCOVER_SERVER_RESPONSE|" + serverIPAddress);
-                        Debug.Log($"Sent response: {serverIPAddress}");
-                        udpDiscoverListener.Send(response, response.Length, discoverIPEndPoint);
-                        messageIPEndPoint = new IPEndPoint(discoverIPEndPoint.Address, messagePort);
-                        streamingIPEndPoint = new IPEndPoint(discoverIPEndPoint.Address, streamingPort);
-                        teleportIPEndPoint = new IPEndPoint(discoverIPEndPoint.Address, teleportPort);
-                        EventManager.instance.TriggerConnected(discoverIPEndPoint.Address.ToString());
+                        Debug.Log($"Sent response: {"DISCOVER_SERVER_RESPONSE|" + serverIPAddress}");
+
+                        sendIPEndPoint = new IPEndPoint(receiveIPEndPoint.Address, discoverClientPort);
+                        // Send the response using the separate UdpClient for sending
+                        udpResponseSender.Send(response, response.Length, sendIPEndPoint);
+
+                        // Now you can set up different endpoints for different ports
+                        messageIPEndPoint = new IPEndPoint(receiveIPEndPoint.Address, messagePort);
+                        streamingIPEndPoint = new IPEndPoint(receiveIPEndPoint.Address, streamingPort);
+                        teleportIPEndPoint = new IPEndPoint(receiveIPEndPoint.Address, teleportPort);
+                        EventManager.instance.TriggerConnected(receiveIPEndPoint.Address.ToString());
                         Debug.Log("Client discovered the server and connected.");
                         isIPDiscovered = true;
                     }
@@ -191,37 +202,41 @@ namespace Canvastique3D
             SendFile(modelFilePath);
         }
 
-        private void SendFile(string modelFilePath)
+        public void SendFile(string filePath)
         {
             try
             {
-                // Read the GLB file as bytes
-                byte[] glbBytes = File.ReadAllBytes(modelFilePath);
+                // Read the file as bytes
+                byte[] fileBytes = File.ReadAllBytes(filePath);
 
-                int totalPackets = (int)Math.Ceiling((double)glbBytes.Length / packetSize);
+                // Establish a TCP connection with the Android app
+                TcpClient client = new TcpClient(receiveIPEndPoint.Address.ToString(), 12327); // Replace with your Android device's IP address
 
-                for (int i = 0; i < totalPackets; i++)
-                {
-                    int offset = i * packetSize;
-                    int size = Math.Min(packetSize, glbBytes.Length - offset);
+                // Get a stream for writing data to the client
+                NetworkStream stream = client.GetStream();
 
-                    byte[] packetData = new byte[size + HEADER_SIZE];
-                    BitConverter.GetBytes(totalPackets).CopyTo(packetData, 0);
-                    BitConverter.GetBytes(i).CopyTo(packetData, 4);
-                    Array.Copy(glbBytes, offset, packetData, HEADER_SIZE, size);
+                // Send the file bytes
+                stream.Write(fileBytes, 0, fileBytes.Length);
 
-                    udpTeleportListener.Send(packetData, packetData.Length, teleportIPEndPoint);
-                }
+                // Close the stream and the client
+                stream.Close();
+                client.Close();
 
+                Debug.Log("File sent successfully.");
                 EventManager.instance.TriggerTeleported();
-                Debug.Log("GLB file sent successfully.");
             }
             catch (Exception e)
             {
-                Debug.LogError($"Error sending GLB file: {e.Message}");
+                EventManager.instance.TriggerWarning($"Error sending file: {e.Message}");
+                EventManager.instance.TriggerTeleported();
             }
         }
 
+        public void SendMaterialName(string materialName)
+        {
+            DispatchMessage($"MATERIAL_NAME|"+materialName);
+        }
+    
         #endregion
 
 
@@ -231,6 +246,7 @@ namespace Canvastique3D
             {
                 byte[] messageData = System.Text.Encoding.ASCII.GetBytes(msg);
                 udpMessageListener.Send(messageData, messageData.Length, messageIPEndPoint);
+                Debug.Log($"Sent message: {msg}");
             }
         }
 
@@ -240,14 +256,6 @@ namespace Canvastique3D
             if (reusableTexture != null)
             {
                 Destroy(reusableTexture);
-            }
-            if (udpDiscoverListener != null)
-            {
-                udpDiscoverListener.Close();
-            }
-            if (udpMessageListener != null)
-            {
-                udpMessageListener.Close();
             }
             if (udpStreamingListener != null)
             {
@@ -268,14 +276,6 @@ namespace Canvastique3D
             if (reusableTexture != null)
             {
                 Destroy(reusableTexture);
-            }
-            if (udpDiscoverListener != null)
-            {
-                udpDiscoverListener.Close();
-            }
-            if (udpMessageListener != null)
-            {
-                udpMessageListener.Close();
             }
             if (udpStreamingListener != null)
             {

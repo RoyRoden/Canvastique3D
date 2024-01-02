@@ -23,7 +23,7 @@ namespace Canvastique3D
         {
 #if UNITY_EDITOR || UNITY_STANDALONE_WIN
             NativeWindowsFileDialog fileDialog = new NativeWindowsFileDialog();
-            string filter = "glTF Files (*.glb;*.gltf)|*.glb;*.gltf|All files (*.*)|*.*";
+            string filter = "glTF Files (*.glb)|*.glb|All files (*.*)|*.*";
             string filePath = fileDialog.OpenFileLoader(filter);
 
             if (!string.IsNullOrEmpty(filePath))
