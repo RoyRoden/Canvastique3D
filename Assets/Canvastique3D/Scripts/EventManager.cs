@@ -65,7 +65,7 @@ namespace Canvastique3D
         public event Action OnStartCalibration;
         public event Action OnCalibrationStarted;
         public event Action OnStopCalibration;
-        public event Action OnCalibrationStopped;        
+        public event Action OnCalibrationStopped;
 
         public void TriggerStartCalibration()
         {
@@ -213,6 +213,58 @@ namespace Canvastique3D
         public void TriggerWarning(string warningMessage)
         {
             OnWarning?.Invoke(warningMessage);
+        }
+        #endregion
+
+        #region STREAMING
+        // STREAMING
+        public event Action OnConnect;
+        public event Action<string> OnConnected;
+        public event Action OnDisconnect;
+        public event Action OnDisconnected;
+        public event Action OnStream;
+        public event Action OnStopStream;
+        public event Action<string> OnTransfer;
+        public event Action OnTransferComplete;
+
+        public void TriggerConnect()
+        {
+            OnConnect?.Invoke();
+        }
+
+        public void TriggerConnected(string clientIP)
+        {
+            OnConnected?.Invoke(clientIP);
+        }
+
+        public void TriggerDisconnect()
+        {
+            OnDisconnect?.Invoke();
+        }
+
+        public void TriggerDisconnected()
+        {
+            OnDisconnected?.Invoke();
+        }
+
+        public void TriggerStream()
+        {
+            OnStream?.Invoke();
+        }
+
+        public void TriggerStopStream()
+        {
+            OnStopStream?.Invoke();
+        }
+
+        public void TriggerTransfer(string modelName)
+        {
+            OnTransfer?.Invoke(modelName);
+        }
+
+        public void TriggerTransferCoplete()
+        {
+            OnTransferComplete?.Invoke();
         }
         #endregion
     }

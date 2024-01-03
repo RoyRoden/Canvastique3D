@@ -6,7 +6,7 @@
                 <ui:Foldout text="Camera" name="Camera" value="true" class="runtimeui-panel-header" style="white-space: normal; -unity-font-style: normal;">
                     <ui:VisualElement name="PreviewContainer" class="runtimeui-subpanel" style="white-space: nowrap; margin-left: 0; background-image: resource(&apos;Textures/MonitorRT&apos;); -unity-background-image-tint-color: rgba(0, 0, 0, 0); background-color: rgb(36, 36, 36); border-bottom-left-radius: 7px; border-bottom-right-radius: 7px;">
                         <ui:Label tabindex="-1" display-tooltip-when-elided="false" name="Monitor" style="width: 340px; height: 340px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 5px; padding-left: 45px; padding-right: 45px; padding-top: 45px; padding-bottom: 45px; white-space: normal; -unity-text-align: middle-center; -unity-font-style: normal; background-color: rgb(46, 46, 46); align-self: center; background-image: resource(&apos;Textures/MonitorRT&apos;);" />
-                        <ui:Button name="Calibration" text="Start Calibration" class="runtimeui-button" style="display: flex;" />
+                        <ui:Button name="Calibration" text="Calibrate" class="runtimeui-button" style="display: flex;" />
                         <ui:Label text="Adjust the threshold value to help the camera frame your painting area. Click &quot;Frame&quot; when ready." name="SettingsTip" style="white-space: normal; -unity-text-align: upper-center; color: rgb(159, 159, 159); font-size: 11px; padding-left: 5px; padding-right: 5px; padding-top: 0; padding-bottom: 0; margin-right: 0; margin-left: 0; margin-top: 0; margin-bottom: 0; display: flex;" />
                     </ui:VisualElement>
                     <ui:VisualElement name="SettingsContainer" class="runtimeui-subpanel-content runtimeui-subpanel">
@@ -18,6 +18,17 @@
                     </ui:VisualElement>
                 </ui:Foldout>
                 <ui:VisualElement name="Icon" class="runtimeui-panel-icon" />
+            </ui:VisualElement>
+            <ui:VisualElement name="StreamingPanel" class="runtimeui-panel" style="align-self: flex-start; align-items: stretch;">
+                <ui:Foldout text="Streaming (experimental)" name="Streaming" value="true" class="runtimeui-panel-header" style="white-space: normal; -unity-font-style: normal;">
+                    <ui:VisualElement name="StreamingContainer" class="runtimeui-subpanel-content runtimeui-subpanel" style="white-space: nowrap; flex-direction: row; justify-content: space-between; flex-wrap: wrap;">
+                        <ui:Button name="Connect" text="Connect" class="runtimeui-button" style="width: 110px; -unity-background-image-tint-color: rgb(37, 37, 37);" />
+                        <ui:Button name="Stream" text=" Stream" class="runtimeui-button" style="width: 110px;" />
+                        <ui:Button name="Transfer" text="Transfer" class="runtimeui-button" style="white-space: normal; width: 110px;" />
+                        <ui:Label tabindex="-1" text="Disconnected" name="StreamingStatus" class="runtimeui-label runtimeui-group" style="color: rgb(255, 0, 0);" />
+                    </ui:VisualElement>
+                </ui:Foldout>
+                <ui:VisualElement name="Icon" class="runtimeui-panel-icon" style="background-image: resource(&apos;Textures/UI/icons8-stream-96&apos;);" />
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="ColumnRight" class="runtimeui-column-right">

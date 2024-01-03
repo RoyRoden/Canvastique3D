@@ -905,6 +905,7 @@ GameObject:
   - component: {fileID: 846394898}
   - component: {fileID: 846394892}
   - component: {fileID: 846394894}
+  - component: {fileID: 846394899}
   - component: {fileID: 846394893}
   m_Layer: 5
   m_Name: RealCanvas
@@ -1111,6 +1112,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   monitorCamera: {fileID: 1236759012}
+--- !u!114 &846394899
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 846394884}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9d6ef6c725bd934a9beab458dd0bc66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  monitorCamera: {fileID: 1236759012}
+  listenPort: 12321
 --- !u!1 &860381604
 GameObject:
   m_ObjectHideFlags: 0
@@ -1347,9 +1362,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47dc70ddd9c1e984cb7761cbc01497c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  zoomSensitivity: 0.001
+  zoomSensitivity: 0.002
   minZoomPercent: 0.1
-  maxZoomPercent: 3
+  maxZoomPercent: 1000
 --- !u!114 &982966763
 MonoBehaviour:
   m_ObjectHideFlags: 0

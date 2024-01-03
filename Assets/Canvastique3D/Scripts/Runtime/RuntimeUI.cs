@@ -52,9 +52,15 @@ namespace Canvastique3D
         private TextField keyTextField;
         private Toggle keyRememberToggle;
 
+        private Button connectButton;
+        private Button streamButton;
+        private Button transferButton;
+        private Label streamingStatus;
+
+        private VisualElement streamingPanel;
+
         private const string THRESHOLD_KEY = "ThresholdValue";
         private const string API_KEY = "APIKeyValue";
-
 
         private void Awake()
         {
@@ -159,9 +165,37 @@ namespace Canvastique3D
             keyTextField = root.Q<TextField>("KeyTextField");
             keyRememberToggle = root.Q<Toggle>("KeyRememberToggle");
 
+            streamingStatus = root.Q<Label>("StreamingStatus");
+            connectButton = root.Q<Button>("Connect");
+            connectButton.clicked += OnConnectButtonClicked;
+            EventManager.instance.OnConnected += HandleConnected;
+
+            streamButton = root.Q<Button>("Stream");
+            streamButton.SetEnabled(false);
+            streamButton.clicked += OnStreamButtonClicked;
+            
+            transferButton = root.Q<Button>("Transfer");
+            transferButton.SetEnabled(false);
+
+            streamingPanel = root.Q<VisualElement>("StreamingPanel");
+            streamingPanel.style.display = DisplayStyle.None;
+
             LoadThresholdValue();
         }
 
+        private void Update()
+        {
+            // Check if the "s" key is pressed to toggle the streamingPanel visibility
+            if (Keyboard.current.sKey.wasPressedThisFrame)
+            {
+                ToggleStreamingPanelVisibility();
+            }
+
+            if (Keyboard.current.hKey.wasPressedThisFrame)
+            {
+                ToggleUIVisibility();
+            }
+        }
 
         #region GETTERS
         // GETTERS
@@ -190,6 +224,48 @@ namespace Canvastique3D
             variationButton.SetEnabled(false);
             LoadAPIKey();
             StartCoroutine(KeyConfirmation());
+        }
+
+        private void OnConnectButtonClicked()
+        {
+            EventManager.instance.TriggerConnect();
+            connectButton.clicked -= OnConnectButtonClicked;
+            connectButton.clicked += OnDisconnectButtonClicked;
+            connectButton.text = "Disconnect";
+            streamingStatus.style.color = Color.yellow;
+            streamingStatus.text = "Connecting...";
+        }
+
+        private void OnDisconnectButtonClicked()
+        {
+            EventManager.instance.TriggerDisconnect();
+            connectButton.clicked += OnConnectButtonClicked;
+            connectButton.clicked -= OnDisconnectButtonClicked;
+            connectButton.text = "Connect";
+            streamingStatus.style.color = Color.red;
+            streamingStatus.text = "Disconnected";
+            streamButton.SetEnabled(false);
+            transferButton.SetEnabled(false);
+        }
+
+        private void OnStreamButtonClicked()
+        {
+            EventManager.instance.TriggerStream();
+            streamButton.clicked += OnStopStreamClicked;
+            streamButton.clicked -= OnStreamButtonClicked;
+            streamButton.text = "Stop";
+            streamingStatus.style.color = Color.green;
+            streamingStatus.text = "Streaming";
+        }
+
+        private void OnStopStreamClicked()
+        {
+            EventManager.instance.TriggerStopStream();
+            streamButton.clicked -= OnStopStreamClicked;
+            streamButton.clicked += OnStreamButtonClicked;
+            streamButton.text = "Stream";
+            streamingStatus.style.color = Color.green;
+            streamingStatus.text = "Connected";
         }
 
         IEnumerator KeyConfirmation()
@@ -266,6 +342,30 @@ namespace Canvastique3D
             }
 
             return null;
+        }
+
+        private void ToggleStreamingPanelVisibility()
+        {
+            if (streamingPanel.style.display == DisplayStyle.None)
+            {
+                streamingPanel.style.display = DisplayStyle.Flex;
+            }
+            else
+            {
+                streamingPanel.style.display = DisplayStyle.None;
+            }
+        }
+
+        private void ToggleUIVisibility()
+        {
+            if (root.style.display == DisplayStyle.None)
+            {
+                root.style.display = DisplayStyle.Flex;
+            }
+            else
+            {
+                root.style.display = DisplayStyle.None;
+            }
         }
         #endregion
 
@@ -453,6 +553,14 @@ namespace Canvastique3D
             lastCapture.AddToClassList("runtimeui-gallery-capture__selected");
             variationButton.SetEnabled(true);
             captureButton.SetEnabled(false);
+        }
+
+        private void HandleConnected(string clientIP)
+        {
+            streamingStatus.style.color = Color.green;
+            streamingStatus.text = $"Connected to {clientIP}";
+            streamButton.SetEnabled(true);
+            transferButton.SetEnabled(true);
         }
         #endregion
 

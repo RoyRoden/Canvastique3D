@@ -13,6 +13,7 @@ namespace Canvastique3D
         private CanvasRecognitionDLL canvasRecognitionDLL;
         private ModelController modelController;
         private GalleryController galleryController;
+        private StreamingServer streamingServer;
 
         // Flag to toggle canvas detection
         private bool isCanvasDetectionOn = false;
@@ -28,6 +29,7 @@ namespace Canvastique3D
             canvasRecognitionDLL = GetComponent<CanvasRecognitionDLL>() ?? gameObject.AddComponent<CanvasRecognitionDLL>();
             modelController = GetComponent<ModelController>() ?? gameObject.AddComponent<ModelController>();
             galleryController = GetComponent<GalleryController>() ?? gameObject.AddComponent<GalleryController>();
+            streamingServer = GetComponent<StreamingServer>() ?? gameObject.AddComponent<StreamingServer>();
 
             // Subscribe to events
             EventManager.instance.OnStartCamera += StartCamera;
@@ -45,6 +47,10 @@ namespace Canvastique3D
             EventManager.instance.OnChangePosition += ChangePosition;
             EventManager.instance.OnChangeRotation += ChangeRotation;
             EventManager.instance.OnAssignMaterial += AssignMaterial;
+            EventManager.instance.OnConnect += ConnectClient;
+            EventManager.instance.OnDisconnect += DisconnectClient;
+            EventManager.instance.OnStream += StartStreaming;
+            EventManager.instance.OnStopStream += StopStreaming;
         }
 
         // Start is called before the first frame update
@@ -196,6 +202,26 @@ namespace Canvastique3D
         private void AssignMaterial(string materialName)
         {
             modelController.AssignMaterialByName(materialName);
+        }
+
+        private void ConnectClient()
+        {
+            streamingServer.ConnectClient();
+        }
+
+        private void DisconnectClient()
+        {
+            streamingServer.DisconnectClient();
+        }
+
+        private void StartStreaming()
+        {
+            streamingServer.StartStreaming();
+        }
+
+        private void StopStreaming()
+        {
+            streamingServer.StopStreaming();
         }
     }
 }
