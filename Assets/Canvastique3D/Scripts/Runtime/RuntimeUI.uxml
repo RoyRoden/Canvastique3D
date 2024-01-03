@@ -24,7 +24,7 @@
                     <ui:VisualElement name="StreamingContainer" class="runtimeui-subpanel-content runtimeui-subpanel" style="white-space: nowrap; flex-direction: row; justify-content: space-between; flex-wrap: wrap;">
                         <ui:Button name="Connect" text="Connect" class="runtimeui-button" style="width: 110px; -unity-background-image-tint-color: rgb(37, 37, 37);" />
                         <ui:Button name="Stream" text=" Stream" class="runtimeui-button" style="width: 110px;" />
-                        <ui:Button name="Transfer" text="Transfer" class="runtimeui-button" style="white-space: normal; width: 110px;" />
+                        <ui:Button name="Teleport" text="Teleport" class="runtimeui-button" style="white-space: normal; width: 110px;" />
                         <ui:Label tabindex="-1" text="Disconnected" name="StreamingStatus" class="runtimeui-label runtimeui-group" style="color: rgb(255, 0, 0);" />
                     </ui:VisualElement>
                 </ui:Foldout>

@@ -47,10 +47,11 @@ namespace Canvastique3D
             EventManager.instance.OnChangePosition += ChangePosition;
             EventManager.instance.OnChangeRotation += ChangeRotation;
             EventManager.instance.OnAssignMaterial += AssignMaterial;
-            EventManager.instance.OnConnect += ConnectClient;
-            EventManager.instance.OnDisconnect += DisconnectClient;
-            EventManager.instance.OnStream += StartStreaming;
-            EventManager.instance.OnStopStream += StopStreaming;
+            EventManager.instance.OnConnect += Connect;
+            EventManager.instance.OnDisconnect += Disconnect;
+            EventManager.instance.OnStartStreaming += StartStreaming;
+            EventManager.instance.OnStopStreaming += StopStreaming;
+            EventManager.instance.OnTeleport += Teleport;
         }
 
         // Start is called before the first frame update
@@ -176,7 +177,11 @@ namespace Canvastique3D
             modelController.ChangeRotation(rotation);
         }
 
-        // Saves the capture
+        private void Teleport()
+        {
+            streamingServer.Teleport(modelController.getModelFilePath());
+        }
+
         private void Capture()
         {
             galleryController.Capture();
@@ -188,7 +193,6 @@ namespace Canvastique3D
             galleryController.Variation(APIKey);
         }
 
-        // Removes a capture
         private void RemoveCapture(string fileName)
         {
             galleryController.RemoveCapture(fileName);
@@ -202,16 +206,17 @@ namespace Canvastique3D
         private void AssignMaterial(string materialName)
         {
             modelController.AssignMaterialByName(materialName);
+            streamingServer.SendMaterialName(materialName);
         }
 
-        private void ConnectClient()
+        private void Connect()
         {
-            streamingServer.ConnectClient();
+            streamingServer.Connect();
         }
 
-        private void DisconnectClient()
+        private void Disconnect()
         {
-            streamingServer.DisconnectClient();
+            streamingServer.Disconnect();
         }
 
         private void StartStreaming()

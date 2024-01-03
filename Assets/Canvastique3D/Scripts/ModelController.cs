@@ -15,12 +15,15 @@ namespace Canvastique3D
 
         private Material originalMaterial;
 
-        // Load 3D model
+        private string modelFilePath = null;
+
+        public string getModelFilePath() => modelFilePath;
+
         public void LoadModel()
         {
 #if UNITY_EDITOR || UNITY_STANDALONE_WIN
             NativeWindowsFileDialog fileDialog = new NativeWindowsFileDialog();
-            string filter = "glTF Files (*.glb;*.gltf)|*.glb;*.gltf|All files (*.*)|*.*";
+            string filter = "glTF Files (*.glb)|*.glb|All files (*.*)|*.*";
             string filePath = fileDialog.OpenFileLoader(filter);
 
             if (!string.IsNullOrEmpty(filePath))
@@ -87,9 +90,12 @@ namespace Canvastique3D
                 {
                     legacyAnimation.Play();
                 }
+
+                modelFilePath = path;
             } 
             else
             {
+                modelFilePath = null;
                 EventManager.instance.TriggerError("Loading glTF failed!");
             }
         }

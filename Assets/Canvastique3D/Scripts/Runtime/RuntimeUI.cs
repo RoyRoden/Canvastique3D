@@ -54,7 +54,7 @@ namespace Canvastique3D
 
         private Button connectButton;
         private Button streamButton;
-        private Button transferButton;
+        private Button teleportButton;
         private Label streamingStatus;
 
         private VisualElement streamingPanel;
@@ -174,8 +174,10 @@ namespace Canvastique3D
             streamButton.SetEnabled(false);
             streamButton.clicked += OnStreamButtonClicked;
             
-            transferButton = root.Q<Button>("Transfer");
-            transferButton.SetEnabled(false);
+            teleportButton = root.Q<Button>("Teleport");
+            teleportButton.SetEnabled(false);
+            teleportButton.clicked += OnTeleportButtonClicked;
+            EventManager.instance.OnTeleported += HandleTeleported;
 
             streamingPanel = root.Q<VisualElement>("StreamingPanel");
             streamingPanel.style.display = DisplayStyle.None;
@@ -245,12 +247,12 @@ namespace Canvastique3D
             streamingStatus.style.color = Color.red;
             streamingStatus.text = "Disconnected";
             streamButton.SetEnabled(false);
-            transferButton.SetEnabled(false);
+            teleportButton.SetEnabled(false);
         }
 
         private void OnStreamButtonClicked()
         {
-            EventManager.instance.TriggerStream();
+            EventManager.instance.TriggerStartStreaming();
             streamButton.clicked += OnStopStreamClicked;
             streamButton.clicked -= OnStreamButtonClicked;
             streamButton.text = "Stop";
@@ -260,12 +262,18 @@ namespace Canvastique3D
 
         private void OnStopStreamClicked()
         {
-            EventManager.instance.TriggerStopStream();
+            EventManager.instance.TriggerStopStreaming();
             streamButton.clicked -= OnStopStreamClicked;
             streamButton.clicked += OnStreamButtonClicked;
             streamButton.text = "Stream";
             streamingStatus.style.color = Color.green;
             streamingStatus.text = "Connected";
+        }
+
+        private void OnTeleportButtonClicked()
+        {
+            EventManager.instance.TriggerTeleport();
+            teleportButton.SetEnabled(false);
         }
 
         IEnumerator KeyConfirmation()
@@ -432,7 +440,8 @@ namespace Canvastique3D
         private void HandleModelLoaded(string modelName, List<string> materialNames)
         {
             modelNameLabel.text = modelName;
-            if(materialNames != null)
+            teleportButton.SetEnabled(true);
+            if (materialNames != null)
             {
                 materialDropdown.choices.Clear();
                 materialDropdown.index = -1;
@@ -560,7 +569,11 @@ namespace Canvastique3D
             streamingStatus.style.color = Color.green;
             streamingStatus.text = $"Connected to {clientIP}";
             streamButton.SetEnabled(true);
-            transferButton.SetEnabled(true);
+        }
+
+        private void HandleTeleported()
+        {
+            
         }
         #endregion
 

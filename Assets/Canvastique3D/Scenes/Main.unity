@@ -742,7 +742,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &544760024
 Transform:
   m_ObjectHideFlags: 0
@@ -908,7 +908,7 @@ GameObject:
   - component: {fileID: 846394899}
   - component: {fileID: 846394893}
   m_Layer: 5
-  m_Name: RealCanvas
+  m_Name: Canvastique3D
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1125,7 +1125,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   monitorCamera: {fileID: 1236759012}
-  listenPort: 12321
+  discoverServerPort: 12320
+  discoverClientPort: 12324
+  messagePort: 12325
+  streamingPort: 12326
+  teleportPort: 12327
 --- !u!1 &860381604
 GameObject:
   m_ObjectHideFlags: 0
